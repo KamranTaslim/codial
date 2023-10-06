@@ -50,3 +50,14 @@ module.exports.createSession = async function (req, res) {
   // steps to authentication
   return res.redirect("/");
 };
+
+//LogOut session
+module.exports.destroySession = function (req, res) {
+  req.logout(function (err) {
+    if (err) {
+      // Handle the error
+    } else {
+      res.redirect("/");
+    }
+  });
+};
