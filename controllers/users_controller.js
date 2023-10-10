@@ -1,10 +1,32 @@
 const User = require("../models/user");
 
 // Get the user's profile
-module.exports.profile = function (req, res) {
-  return res.render("user_profile", {
-    title: "User Profile",
-  });
+// module.exports.profile = function (req, res) {
+//   return res.render("user_profile", {
+//     title: "User Profile",
+//     profile_user: user,
+//   });
+// };
+
+// module.exports.profile = function (req, res) {
+//   User.findById(req.params.id, function (err, user) {
+//     return res.render("user_profile", {
+//       title: "User Profile",
+//       profile_user: user,
+//     });
+//   });
+// };
+module.exports.profile = async function (req, res) {
+  try {
+    const user = await User.findById(req.params.id);
+    return res.render("user_profile", {
+      title: "User Profile",
+      profile_user: user,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
 };
 
 //render the Sign up page
@@ -49,6 +71,30 @@ module.exports.create = async function (req, res) {
 module.exports.createSession = async function (req, res) {
   // steps to authentication
   return res.redirect("/");
+};
+//Update user Profile name and email
+
+// module.exports.update = function (req, res) {
+//   if (req.user.id == req.params.id) {
+//     User.findByIdAndUpdate(req.params.id, req.body, function (err, user) {
+//       return res.redirect("back");
+//     });
+//   } else {
+//     return res.status(401).send("Unauthorized");
+//   }
+// };
+module.exports.update = async function (req, res) {
+  if (req.user.id == req.params.id) {
+    try {
+      const user = await User.findByIdAndUpdate(req.params.id, req.body);
+      return res.redirect("back");
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send("Internal Server Error");
+    }
+  } else {
+    return res.status(401).send("Unauthorized");
+  }
 };
 
 //LogOut session
