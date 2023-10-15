@@ -1,5 +1,6 @@
 #home-container{
     display: flex;
+    height: 100vh;
     #feed-posts{
         width: 70%;
         padding: 10px;
@@ -7,7 +8,7 @@
     #user-friends{
         width: 30%;
         padding: 10px;
-        border: 1px solid black;
+        border-left: 1px solid black;
         height: 100%;
     }
 }

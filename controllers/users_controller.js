@@ -1,4 +1,6 @@
 const User = require("../models/user");
+const fs = require("fs");
+const path = require("path");
 
 // Get the user's profile
 // module.exports.profile = function (req, res) {
@@ -70,6 +72,7 @@ module.exports.create = async function (req, res) {
 // Sign in and Create a Session for the users
 module.exports.createSession = async function (req, res) {
   // steps to authentication
+  req.flash("success", "Logged in Successfully");
   return res.redirect("/");
 };
 //Update user Profile name and email
@@ -83,16 +86,36 @@ module.exports.createSession = async function (req, res) {
 //     return res.status(401).send("Unauthorized");
 //   }
 // };
+
 module.exports.update = async function (req, res) {
   if (req.user.id == req.params.id) {
     try {
-      const user = await User.findByIdAndUpdate(req.params.id, req.body);
-      return res.redirect("back");
+      const user = await User.findByIdAndUpdate(req.params.id);
+
+      User.uploadedAvatar(req, res, function (err) {
+        if (err) {
+          console.log("******Multer Error:", err);
+        }
+
+        user.name = req.body.name;
+        user.email = req.body.email;
+
+        if (req.file) {
+          if (user.avatar) {
+            fs.unlinkSync(path.join(__dirname, "..", user.avatar));
+          }
+          //this is saving the path of the uploaded file into the avatar field in the user
+          user.avatar = User.avatarPath + "/" + req.file.filename;
+        }
+        user.save();
+        return res.redirect("back");
+      });
     } catch (err) {
-      console.error(err);
-      return res.status(500).send("Internal Server Error");
+      req.flash("error", err);
+      return res.redirect("back");
     }
   } else {
+    req.flash("error ", "Unauthorized");
     return res.status(401).send("Unauthorized");
   }
 };
@@ -103,6 +126,7 @@ module.exports.destroySession = function (req, res) {
     if (err) {
       // Handle the error
     } else {
+      req.flash("success", " You are Successfully Logged out");
       res.redirect("/");
     }
   });
