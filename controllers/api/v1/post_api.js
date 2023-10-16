@@ -19,12 +19,11 @@ module.exports.index = async function (req, res) {
 };
 
 module.exports.destroy = async function (req, res) {
-  console.log("HI");
   try {
     const post = await Post.findById(req.params.id);
 
     // if (post.user.toString() === req.user.id.toString()) {
-    console.log(post);
+
     post.deleteOne();
 
     await Comment.deleteMany({ post: req.params.id });
