@@ -5,23 +5,23 @@ const ExtractJWT = require("passport-jwt").ExtractJwt;
 const User = require("../models/user");
 
 let opts = {
-  jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken,
+  jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
   secretOrKey: "codieal",
 };
 
 passport.use(
-  new JWTStrategy(opts, function (jwtPayload, done) {
-    User.findById(jwtPayload._id, function (err, user) {
-      if (err) {
-        console.log("Error in finding user from JWT");
-        return;
-      }
+  new JWTStrategy(opts, async function (jwtPayload, done) {
+    try {
+      const user = await User.findById(jwtPayload._id);
       if (user) {
         return done(null, user);
       } else {
         return done(null, false);
       }
-    });
+    } catch (err) {
+      console.error("Error in finding user from JWT: ", err);
+      return done(err, false);
+    }
   })
 );
 
