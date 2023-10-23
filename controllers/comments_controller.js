@@ -1,20 +1,39 @@
 const Comment = require("../models/comment");
 const Post = require("../models/post");
+const commentsMailer = require("../mailers/comments_mailer");
 
-module.exports.create = async (req, res) => {
-  const post = await Post.findById(req.body.post);
-  if (post) {
-    const comment = await Comment.create({
-      content: req.body.content,
-      post: req.body.post,
-      user: req.user._id,
-    });
-    post.comments.push(comment);
-    await post.save();
-    res.redirect("/");
+module.exports.create = async function (req, res) {
+  try {
+    let post = await Post.findById(req.body.post);
+    if (post) {
+      let comment = await Comment.create({
+        content: req.body.content,
+        post: req.body.post,
+        user: req.user._id,
+      });
+      post.comments.push(comment);
+      post.save();
+      console.log("hii");
+      comment = await comment.populate("user", "name email");
+      console.log("hii2");
+      commentsMailer.newComment(comment);
+      if (req.xhr) {
+        return res.status(200).json({
+          data: {
+            comment: comment,
+          },
+          message: "Post created",
+        });
+      }
+      req.flash("Success", "Comment published!");
+
+      res.redirect("/");
+    }
+  } catch (err) {
+    req.flash("error", "Error creating the comment: " + err);
+    return res.status(500).json({ error: "Error creating the comment" });
   }
 };
-
 // module.exports.destroy = function (req, res) {
 //   Comment.findById(req.params.id, function (err, comment) {
 //     if (comment.user == req.user.id) {
